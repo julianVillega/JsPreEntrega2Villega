@@ -61,12 +61,15 @@ function generarPrecios(){
     const msPorDia = 1000*60*60*24;
     const fechaFin = new Date();
     const fechaInicio = fechaFin - 30 * msPorDia;
-    for(let i = 0; i <= 4; i++){
-        for(let j = 0; j <= 4; j++){
-            fecha = new Date(Math.random()*(fechaFin- fechaInicio) + fechaInicio)
-            let valor = Math.random()*1000;
-            valor = valor.toFixed(2)
-            agregarPrecio(new Precio(productos[i], valor, comercios[j], fecha));
+    // Agregamos 5 precios de cada producto en cada comercio
+    for(let producto = 0; producto <= 4; producto++){
+        for(let comercio = 0; comercio <= 4; comercio++){
+            for(let cantidadDePrecios = 0; cantidadDePrecios < 5; cantidadDePrecios ++){
+                fecha = new Date(Math.random()*(fechaFin- fechaInicio) + fechaInicio)
+                let valor = Math.random()*1000;
+                valor = valor.toFixed(2)
+                agregarPrecio(new Precio(productos[producto], valor, comercios[comercio], fecha));
+            }
         }
     }
 }
@@ -136,7 +139,8 @@ function mainLoop() {
             }
         )
         if(operacion == "cancelar"){
-            continue
+            alert("Gracias por utlizar nuestros servicios, recargue la pagina para volver a operar")
+            break
         }
         if (operacion == "0") {
             let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
@@ -169,8 +173,8 @@ function mainLoop() {
             // obtener los precios del producto en ese comercio
             let preciosEnComercio = precios.filter(p => p.producto == producto && p.comercio == comercioSeleccionado)
             
-            // ordenar los precios
-            preciosEnComercio.sort((precio1,precio2) => precio1.valor - precio2.valor)
+            // ordenar los precios por fecha
+            preciosEnComercio.sort((precio1,precio2) => precio2.fecha - precio1.fecha)
             
             //construir el texto del alert
             texto = `Historial de precios del producto: ${producto.nombre} en ${comercioSeleccionado.nombre}: \n`;
