@@ -73,7 +73,6 @@ function generarPrecios(){
 
 // funciones de ordenamiento
 
-
 function ordenarPrecios(precios, criterio){
     //recibe una lista de precios y la ordena segun el criterio
     let copia = precios.slice();
@@ -94,37 +93,35 @@ function preciosDelProducto(producto){
 generarPrecios()
 mainLoop()
 
-function seleccionarProducto(listaDeProductos){
-    let texto = "selecciona el producto:\n"
-    let producto;
-    for (let i = 0; i < listaDeProductos.length; i++) {
-        texto = texto.concat(`${i}: ${listaDeProductos[i].nombre} \n`);
+function seleccionarElemento(textoInstructivo, textoError, lista, funcionDeTexto){
+    /*
+    Recibe una lista y genera un prompt para que el usuario seleccione un elemento.
+    Parametros:
+        textoInstructivo: texto que se muestra como titulo del prompt.
+        textoError: texto que se muestra si el usuario selecciona un opción inváldia.
+        lista: lista de elemntos que se deben brindar como opción de selección.
+        funcionDeTexto: funcón que debe retornar el texto para cada opcion, por ejemplo
+        si la lista contiene comercios, esta funcion podria recibir como parametro un comercio,
+        y retornar su nombre.
+    Retorna el elemento seleccionado, o la string "cancelar"
+    */
+    let elementoSeleccionado;
+    for(let i = 0; i< lista.length; i++){
+        textoInstructivo = textoInstructivo.concat(`${i}: ${funcionDeTexto(lista[i])}\n`)
     }
     while(true){
-        producto = prompt(texto);
-        if(isNaN(producto)|| producto ==='' ||!(producto >= 0 && producto < listaDeProductos.length)){
-            alert("el producto ingresado es inválido");
+        elementoSeleccionado = prompt(textoInstructivo);
+        if(elementoSeleccionado === null){
+            alert("operación cancelada")
+            return "cancelar"
         }
-        else{
-            break
+        if(isNaN(elementoSeleccionado)|| elementoSeleccionado ==='' ||!(elementoSeleccionado >= 0 && elementoSeleccionado < lista.length)){
+            alert(textoError);
+            continue
         }
+        return lista[elementoSeleccionado]
     }
-    return producto
-}
 
-function seleccionarComercio(comercios){
-    let texto = `Selecciona el comercio: \n`;
-    let comercioSeleccionado;
-    for(let i = 0; i< comercios.length; i++){
-        texto = texto.concat(`${i}: ${comercios[i].nombre}\n`)
-    }
-    while(true){
-        comercioSeleccionado = prompt(texto);
-        if(isNaN(comercioSeleccionado)|| comercioSeleccionado ==='' ||!(comercioSeleccionado >= 0 && comercioSeleccionado < comercios.length)){
-            alert("el comercio ingresado es inválido");
-        }
-        return comercios[comercioSeleccionado]
-    }
 }
 
 function mainLoop() {
@@ -139,8 +136,12 @@ function mainLoop() {
         }
 
         if (operacion == "1") {
-            let producto = seleccionarProducto(productos);
-            let p = preciosDelProducto(productos[producto])
+            let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
+            // let producto = seleccionarProducto(productos);
+            if(producto == "cancelar"){
+                continue;
+            }
+            let p = preciosDelProducto(producto)
             p = ordenarPrecios(p, "valor");
             texto = `Precios: \n`
             p.forEach(e => texto = texto.concat(`Precio: ${e.valor} Fecha: ${e.fecha.toLocaleString()} Comercio: ${e.comercio.nombre}\n\n`))
@@ -149,15 +150,16 @@ function mainLoop() {
         }
         else{
             // seleccionar el producto
-            let producto = seleccionarProducto(productos);
-            producto = productos[producto];
-
+            let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
+            if(producto == "cancelar"){
+                continue;
+            }
 
             // obtener los comercios que venden ese producto.
             let comerciosQueVendenProducto = comercios.filter(comercio => precios.some(p => (p.producto == producto) && p.comercio == comercio))
             
             // seleccionar el comercio
-            let comercioSeleccionado = seleccionarComercio(comerciosQueVendenProducto);
+            let comercioSeleccionado = seleccionarElemento("Selecciona un comercio\n",'El comercio seleccionado es inválido',comerciosQueVendenProducto, c => c.nombre);
             
             // obtener los precios del producto en ese comercio
             let preciosEnComercio = precios.filter(p => p.producto == producto && p.comercio == comercioSeleccionado)
