@@ -126,16 +126,19 @@ function seleccionarElemento(textoInstructivo, textoError, lista, funcionDeTexto
 
 function mainLoop() {
     while (true) {
-        let texto = `Ingrese el numero de la operacion a realizar:
-        1:Consultar los precios mas recientes para un producto.
-        2:Consultar el historial de precios de un producto.`
-        let operacion = prompt(texto)
-        if (!(operacion == "1" || operacion == "2")) {
-            alert("la operación ingresada es inválida");
-            continue;
+        let operacion = seleccionarElemento(
+            "Ingrese el numero de la operacion a realizar:\n",
+            "la opcione seleccionada es invalida",
+            [0,1],
+            operacion => {
+                let textos = ["Consultar los precios mas recientes para un producto." ,"Consultar el historial de precios de un producto."]
+                return textos[operacion]
+            }
+        )
+        if(operacion == "cancelar"){
+            continue
         }
-
-        if (operacion == "1") {
+        if (operacion == "0") {
             let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
             // let producto = seleccionarProducto(productos);
             if(producto == "cancelar"){
@@ -160,7 +163,9 @@ function mainLoop() {
             
             // seleccionar el comercio
             let comercioSeleccionado = seleccionarElemento("Selecciona un comercio\n",'El comercio seleccionado es inválido',comerciosQueVendenProducto, c => c.nombre);
-            
+            if(comercioSeleccionado == "cancelar"){
+                continue;
+            }
             // obtener los precios del producto en ese comercio
             let preciosEnComercio = precios.filter(p => p.producto == producto && p.comercio == comercioSeleccionado)
             
