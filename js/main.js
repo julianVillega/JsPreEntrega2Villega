@@ -93,16 +93,15 @@ function preciosDelProducto(producto){
     return precios.filter(p => p.producto == producto)
 }
 
-generarPrecios()
-mainLoop()
 
 function seleccionarElemento(textoInstructivo, textoError, lista, funcionDeTexto){
     /*
     Recibe una lista y genera un prompt para que el usuario seleccione un elemento.
     Parametros:
-        textoInstructivo: texto que se muestra como titulo del prompt.
-        textoError: texto que se muestra si el usuario selecciona un opción inváldia.
-        lista: lista de elemntos que se deben brindar como opción de selección.
+    textoInstructivo: texto que se muestra como titulo del prompt.
+    textoError: texto que se muestra si el usuario selecciona un opción inváldia.
+    lista: lista de elemntos que se deben brindar como opción de selección.
+    
         funcionDeTexto: funcón que debe retornar el texto para cada opcion, por ejemplo
         si la lista contiene comercios, esta funcion podria recibir como parametro un comercio,
         y retornar su nombre.
@@ -184,3 +183,8 @@ function mainLoop() {
         }
     }
 }
+
+
+generarPrecios()
+mainLoop()
+
