@@ -61,4 +61,17 @@ body{
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
+    padding: 5px;
+}
+
+.comercio-div__btn-cerrar{
+    width: fit-content;
+    height: fit-content;
+    padding: 0.25rem;
+    justify-self: end;
+}
+
+.comercio-div__form{
+    display: flex;
+    justify-content: space-around;
 }

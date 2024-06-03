@@ -297,9 +297,11 @@ function abrirComercio(comercio){
     //muestra un modal con el comercio para poder operar sobre el mismo
     const body = document.body;
     
+    //contenedor principal
     const divComercio = document.createElement('div');
     divComercio.classList.add('comercio-div');
-
+    
+    //cabecera con info basica del comercio
     const divCabecera = document.createElement('div');
     divCabecera.classList.add("comercio-div__cabecera");
     divComercio.appendChild(divCabecera);
@@ -311,6 +313,7 @@ function abrirComercio(comercio){
 
     const btnCerrar = document.createElement('button');
     btnCerrar.innerText = "X";
+    btnCerrar.classList.add("comercio-div__btn-cerrar");
     btnCerrar.addEventListener('click',() => divComercio.remove());
     divCabecera.appendChild(btnCerrar);
 
@@ -318,7 +321,28 @@ function abrirComercio(comercio){
     dirreccionComercio.innerText = comercio.direccion;
     divCabecera.appendChild(dirreccionComercio);
     
-    
+    //buscador de productos
+    const formBusqueda = document.createElement('form');
+    formBusqueda.classList.add("comercio-div__form");
+    divComercio.appendChild(formBusqueda);
+
+    const labelBuscar = document.createElement("label");
+    labelBuscar.setAttribute("for","input_busqueda");
+    labelBuscar.innerText = "Buscar Productos:";
+    formBusqueda.appendChild(labelBuscar);
+
+    const busquedaInput = document.createElement("input");
+    busquedaInput.type = "text";
+    busquedaInput.id = "input_busqueda";
+    formBusqueda.appendChild(busquedaInput);
+
+    const btnBuscar = document.createElement("button");
+    btnBuscar.addEventListener("click",()=> console.log(buscando));
+    btnBuscar.id = "comercio_btn_buscar";
+    btnBuscar.innerText = "Buscar";
+    formBusqueda.appendChild(btnBuscar);
+
+
     body.appendChild(divComercio);
 }
 
