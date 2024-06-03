@@ -1,8 +1,9 @@
 class Comercio{
-    constructor(cuit, nombre, direccion){
+    constructor(cuit, nombre, direccion, latlang){
         this.cuit = cuit;
         this.nombre = nombre;
         this.direccion = direccion;
+        this.latlang = latlang;
     }
 }
 
@@ -22,10 +23,46 @@ class Precio{
     }
 }
 
+class Map{
+    constructor(){
+        this.markers = [];
+        this.map = L.map('map').setView([-34.92052462063165, -57.94446936030479], 13);
+        // Add the OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(this.map);
+    }
+
+    addMarker(latlng){
+        const marker = L.marker(latlng);
+        this.markers.push(marker);
+        marker.addTo(this.map);
+        return marker;
+    }
+
+    mostrarComercios(comercios){
+        for(let comercio of comercios){
+            const marker = this.addMarker(comercio.latlang);
+            marker.bindPopup(`${comercio.nombre}\nDirección: ${comercio.direccion}`)
+            marker.on('click',() => abrirComercio(comercio))
+        }
+    }
+
+    quitarMarker(marker){
+        this.map.removeLayer(marker);
+        this.markers = this.markers.filter(m => m !== marker);
+    }
+    
+
+}
+
 let comercios = [];
 let productos = [];
 let precios = [];
+let map;
+//objeto para guardar el mapa de leafleat js
 
+// let map = {map:null}
 
 //funciones para agregar a los arrays.
 
@@ -43,11 +80,11 @@ function agregarPrecio(precio){
 
 // cargo el sistema con algunos datos iniciales.
 
-agregarComercio(new Comercio("00123654", "Carrefour", "calle 12 nro 123"))
-agregarComercio(new Comercio("09275654", "Super Lu", "calle 44 nro 1200"))
-agregarComercio(new Comercio("98133654", "El chino", "av 51 nro 456"))
-agregarComercio(new Comercio("15612367", "Lo de chicho", "Bv Americas nro 846"))
-agregarComercio(new Comercio("98761452", "Almacen la Gloria", "calle 32 nro 444"))
+agregarComercio(new Comercio("00123654", "Carrefour", "calle 12 nro 123",[-34.92306135547813, -57.94991434646028]))
+agregarComercio(new Comercio("09275654", "Super Lu", "av 60 nro 1200",[-34.92339482939376, -57.944068539651944]))
+agregarComercio(new Comercio("98133654", "El chino", "av 51 nro 456",[-34.92170122221505, -57.94498483514024]))
+agregarComercio(new Comercio("15612367", "Lo de chicho", "Bv Americas nro 846",[-34.92436488977569, -57.94811562618901]))
+agregarComercio(new Comercio("98761452", "Almacen la Gloria", "calle 32 nro 444",[-34.924987645034854, -57.94625914898358]))
 
 agregarProducto(new Producto("1456987","Dulce de leche"));
 agregarProducto(new Producto("9876458","Fideos"));
@@ -184,7 +221,109 @@ function mainLoop() {
     }
 }
 
+function armarHeader(){
+    const body = document.body;
+    const header = document.createElement("header");
+    header.classList.add("header");
+    const title = document.createElement("h1");
+    title.classList.add("header__title");
+    title.innerText = "PubliPrecios";
+    header.appendChild(title);
+    body.append(header);
+}
 
-generarPrecios()
-mainLoop()
+function armarMain(){
+    const body = document.body;
+    // creamos el main
+    const main = document.createElement("main");
+    main.classList.add("main");
+
+    // creamos la barra de busqueda
+    const form = document.createElement("form");
+    form.classList.add("main__search-form");
+    main.appendChild(form);
+
+    const labelBusqueda = document.createElement("label");
+    labelBusqueda.innerText = "Buscar:";
+    labelBusqueda.setAttribute("for","input_busqueda");
+    form.appendChild(labelBusqueda);
+
+    const input_busqueda = document.createElement("input");
+    input_busqueda.type = "text";
+    input_busqueda.name = "input_busqueda";
+    input_busqueda.id = "input_busqueda";
+    form.appendChild(input_busqueda);
+
+    const labelCheckboxProductos = document.createElement("label");
+    labelCheckboxProductos.setAttribute("for","checkbox_productos");
+    labelCheckboxProductos.innerText = "Buscar Productos";
+    form.appendChild(labelCheckboxProductos);
+
+    const inputCheckboxProductos = document.createElement("input");
+    inputCheckboxProductos.type = "checkbox";
+    inputCheckboxProductos.id ="checkbox_productos";
+    inputCheckboxProductos.value = "false";
+    form.appendChild(inputCheckboxProductos);
+
+    const labelCheckboxLocales = document.createElement("label");
+    labelCheckboxLocales.setAttribute("for","checkbox_locales");
+    labelCheckboxLocales.innerText = "Buscar locales";
+    form.appendChild(labelCheckboxLocales);
+
+    const inputCheckboxLocales = document.createElement("input");
+    inputCheckboxLocales.type = "checkbox";
+    inputCheckboxLocales.id ="checkbox_locales";
+    inputCheckboxLocales.value = "false";
+    form.appendChild(inputCheckboxLocales);
+
+    const btnBuscar = document.createElement("button");
+    btnBuscar.innerText = "Buscar";
+    btnBuscar.id = "btn-buscar";
+    form.appendChild(btnBuscar);
+    
+    // creamos el mapa
+
+    const mapDiv = document.createElement("div");
+    mapDiv.id = "map";
+    mapDiv.classList.add("main__map");
+    main.appendChild(mapDiv);    
+    body.appendChild(main);
+    // inicializarMapa(map);
+    map = new Map();
+    map.mostrarComercios(comercios);
+}
+
+function abrirComercio(comercio){
+    //muestra un modal con el comercio para poder operar sobre el mismo
+    const body = document.body;
+    
+    const divComercio = document.createElement('div');
+    divComercio.classList.add('comercio-div');
+
+    const divCabecera = document.createElement('div');
+    divCabecera.classList.add("comercio-div__cabecera");
+    divComercio.appendChild(divCabecera);
+
+    const nombreComercio = document.createElement('h2');
+    nombreComercio.innerText = comercio.nombre;
+    divCabecera.appendChild(nombreComercio);
+
+
+    const btnCerrar = document.createElement('button');
+    btnCerrar.innerText = "X";
+    btnCerrar.addEventListener('click',() => divComercio.remove());
+    divCabecera.appendChild(btnCerrar);
+
+    const dirreccionComercio = document.createElement('h3');
+    dirreccionComercio.innerText = comercio.direccion;
+    divCabecera.appendChild(dirreccionComercio);
+    
+    
+    body.appendChild(divComercio);
+}
+
+generarPrecios();
+armarHeader();
+armarMain();
+// mainLoop()
 
