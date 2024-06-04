@@ -46,8 +46,8 @@ body{
 
 .comercio-div{
     position: absolute;
-    top: 25%;
-    left:25%;
+    bottom: 0%;
+    left:0%;
     display: flex;
     flex-direction: column;
     /* height: 200px;
@@ -74,4 +74,8 @@ body{
 .comercio-div__form{
     display: flex;
     justify-content: space-around;
+}
+
+.marker-color-green{
+    filter:hue-rotate(278deg);
 }

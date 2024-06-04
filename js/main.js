@@ -25,7 +25,7 @@ class Precio{
 
 class Map{
     constructor(){
-        this.markers = [];
+        this.comerciosMarkers = [];
         this.map = L.map('map').setView([-34.92052462063165, -57.94446936030479], 13);
         // Add the OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -33,36 +33,45 @@ class Map{
         }).addTo(this.map);
     }
 
-    addMarker(latlng){
-        const marker = L.marker(latlng);
-        this.markers.push(marker);
-        marker.addTo(this.map);
-        return marker;
+    addComercioMarker(comercio){
+        // const marker = L.marker(comercio.latlang);
+        const comercioMarker = new ComercioMarker(comercio);
+        this.comerciosMarkers.push(comercioMarker);
+        comercioMarker.marker.addTo(this.map);
+        return comercioMarker;
     }
 
     mostrarComercios(comercios){
         for(let comercio of comercios){
-            const marker = this.addMarker(comercio.latlang);
-            marker.bindPopup(`${comercio.nombre}\nDirección: ${comercio.direccion}`)
-            marker.on('click',() => abrirComercio(comercio))
+            const comercioMarker = this.addComercioMarker(comercio);
+            comercioMarker.marker.on('click',() => abrirComercio(comercio))
         }
     }
 
     quitarMarker(marker){
         this.map.removeLayer(marker);
-        this.markers = this.markers.filter(m => m !== marker);
+        this.comerciosMarkers = this.comerciosMarkers.filter(m => m !== marker);
+    }
+
+    markerDelComercio(comercio){
+        return this.comerciosMarkers.filter(cm => cm.comercio == comercio)[0];
     }
     
 
 }
 
+class ComercioMarker{
+    constructor(comercio){
+        this.marker = L.marker(comercio.latlang);
+        this.comercio = comercio;
+    }
+}
+
 let comercios = [];
 let productos = [];
 let precios = [];
-let map;
 //objeto para guardar el mapa de leafleat js
-
-// let map = {map:null}
+let map;
 
 //funciones para agregar a los arrays.
 
@@ -128,6 +137,24 @@ function ordenarPrecios(precios, criterio){
 // funciones de filtrado
 function preciosDelProducto(producto){
     return precios.filter(p => p.producto == producto)
+}
+
+function preciosDelComercio(comercio){
+    // retorna los ultimos precios de los productos vendidos en el comercio pasado como parametro
+    let preciosDelComercio = precios.filter(e => e.comercio == comercio);
+
+    //eliminar precios de productos repetidos
+    preciosDelComercio.sort((p1,p2) => p1.ean - p2.ean);
+    const preciosMasRecientes = {};
+    preciosDelComercio.forEach(precio => {
+        const ean = precio.producto.ean;
+        const fecha = precio.fecha;
+        if(!preciosMasRecientes[ean] || fecha > preciosMasRecientes[ean].fecha){
+            preciosMasRecientes[ean] = precio;
+        }
+    })
+    return Object.values(preciosMasRecientes);
+
 }
 
 
@@ -297,6 +324,12 @@ function abrirComercio(comercio){
     //muestra un modal con el comercio para poder operar sobre el mismo
     const body = document.body;
     
+    // cerramos los comercios abiertos si los hay.
+    document.querySelectorAll(".comercio-div").forEach( c => c.remove());
+    // cambiamos el color del marker
+    const comercioMarker = map.markerDelComercio(comercio);
+    comercioMarker.marker.getElement().classList.toggle("marker-color-green");
+
     //contenedor principal
     const divComercio = document.createElement('div');
     divComercio.classList.add('comercio-div');
@@ -314,7 +347,10 @@ function abrirComercio(comercio){
     const btnCerrar = document.createElement('button');
     btnCerrar.innerText = "X";
     btnCerrar.classList.add("comercio-div__btn-cerrar");
-    btnCerrar.addEventListener('click',() => divComercio.remove());
+    btnCerrar.addEventListener('click',() => {
+        comercioMarker.marker.getElement().classList.toggle("marker-color-green");
+        divComercio.remove();
+    });
     divCabecera.appendChild(btnCerrar);
 
     const dirreccionComercio = document.createElement('h3');
@@ -342,6 +378,48 @@ function abrirComercio(comercio){
     btnBuscar.innerText = "Buscar";
     formBusqueda.appendChild(btnBuscar);
 
+    // tabla de productos y precios
+    const divTabla = document.createElement("div");
+    divComercio.appendChild(divTabla);
+
+    const tituloTabla = document.createElement("h3");
+    tituloTabla.innerText = "Productos:"
+    divTabla.appendChild(tituloTabla);
+
+    const tabla = document.createElement("table");
+    divComercio.appendChild(tabla);
+
+    const encabezadoTabla = document.createElement("tr");
+    tabla.appendChild(encabezadoTabla);
+
+    const tablaNombre = document.createElement("th");
+    tablaNombre.innerText = "Nombre";
+    encabezadoTabla.appendChild(tablaNombre);
+
+    const tablaUtimaActualizacion= document.createElement("th");
+    tablaUtimaActualizacion.innerText = "Ultima Actualización";
+    encabezadoTabla.appendChild(tablaUtimaActualizacion);
+    
+    const tablaPrecio = document.createElement("th");
+    tablaPrecio.innerText = "Precio";
+    encabezadoTabla.appendChild(tablaPrecio);
+
+    let precios = preciosDelComercio(comercio);
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formatter = new Intl.DateTimeFormat('en-GB', options);
+    for(let precio of precios){
+        const row = document.createElement('tr');
+        tabla.appendChild(row);
+        const colNombre = document.createElement('td');
+        colNombre.innerText = precio.producto.nombre;
+        row.appendChild(colNombre);
+        const colUltimaActualizacion = document.createElement('td');
+        colUltimaActualizacion.innerText = formatter.format(precio.fecha);
+        row.appendChild(colUltimaActualizacion);
+        const colPrecio = document.createElement('td');
+        colPrecio.innerText = precio.valor;
+        row.appendChild(colPrecio);
+    }
 
     body.appendChild(divComercio);
 }
