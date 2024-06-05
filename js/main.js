@@ -75,6 +75,10 @@ let precios = [];
 //objeto para guardar el mapa de leafleat js
 let map;
 
+let configuracionBusquedaEnMapa = {
+    tipo : "local",
+}
+
 //funciones para agregar a los arrays.
 function agregarComercio(comercio){
     comercios.push(comercio)
@@ -91,7 +95,6 @@ function agregarPrecio(precio){
 
 
 // funciones de ordenamiento
-
 function ordenarPrecios(precios, criterio){
     //recibe una lista de precios y la ordena segun el criterio
     let copia = precios.slice();
@@ -102,6 +105,15 @@ function ordenarPrecios(precios, criterio){
             return copia.sort((a, b) => a.valor - b.valor);
     }
     return copia
+}
+
+// funciones de busqueda
+function buscarComercio(nombre){
+    return comercios.filter(c => c.nombre.toLowerCase().includes(nombre.toLowerCase()));
+}
+
+function buscarProducto(nombre){
+    return productos.filter(p => p.nombre.toLowerCase().includes(nombre.toLowerCase()));
 }
 
 // funciones de filtrado
@@ -347,8 +359,80 @@ function armarVistaDeComercio(comercio){
     body.appendChild(divComercio);
 }
 
+function armarVistaDeResultadosDeBusqueda(){
+    const main = document.querySelector(".main");
+    const divResultados = document.createElement("div");
+    divResultados.classList.add("main__resultados-busqueda");
+    divResultados.classList.add("main__resultados-busqueda--oculto");
+    main.appendChild(divResultados);
+
+    const titulo = document.createElement("h3");
+    titulo.innerText = "Resultados:";
+    titulo.classList.add("main__titulo-resultados-busqueda");
+    divResultados.appendChild(titulo);
+
+    const divListaResultados = document.createElement('div');
+    divListaResultados.classList.add('main__lista-resultados');
+    divResultados.appendChild(divListaResultados);
+}
+
+function mostrarResultados(resultados){
+    // recibe elementos html y los muestra en el panel de resultados.
+
+
+    // muestrar el panel de resultados caso este oculto.
+    const divResultados = document.querySelector(".main__resultados-busqueda");
+    divResultados.classList.remove("main__resultados-busqueda--oculto");
+    // quitar los resultados viejos si los hay
+    const divListaResultados = document.querySelector(".main__lista-resultados");
+    const divsResultados = divListaResultados.childNodes;
+    for (let i = divsResultados.length - 1 ; i >= 0; i--){
+        divListaResultados.removeChild(divsResultados[i]);
+    }
+    // console.log(divResultados.childNodes)
+    if(resultados.length == 0){
+        const sinResultados = document.createElement("h4");
+        sinResultados.innerText = "No se encontraron resultados";
+        divListaResultados.appendChild(sinResultados);
+    }
+    else{
+        // agregamos los resultados a la lista.
+        resultados.forEach(resultado => {
+            divListaResultados.appendChild(resultado);
+        });
+    }
+
+}
+
+// funcion para configurar eventos:
+
+function configurarBusqueda(){
+    // configuro los checkbox para buscar por locales/productos:
+    let inputCheckboxProductos = document.querySelector("#checkbox_productos");
+    let inputCheckboxLocales = document.querySelector("#checkbox_locales");
+    inputCheckboxProductos.addEventListener ("change",() => inputCheckboxLocales.disabled = !inputCheckboxLocales.disabled);
+    inputCheckboxLocales.addEventListener ("change",() => inputCheckboxProductos.disabled = !inputCheckboxProductos.disabled);
+
+    // funcion de busqueda
+    let textInput = document.querySelector("#input_busqueda");
+    textInput.addEventListener("keyup", () => {
+        let resultadosHtml = [];
+        if(configuracionBusquedaEnMapa.tipo == "local"){
+            resultadosHtml = buscarComercio(textInput.value).map(comercio => {
+                const r = document.createElement("div");
+                r.classList.add("main__resultado")
+                r.innerHTML = `<h4>${comercio.nombre}<\h4> <h4>${comercio.direccion}<\h4>`;
+                return r;
+            });
+            mostrarResultados(resultadosHtml);
+        }
+    })
+}
+
 generarPrecios();
 armarHeader();
 armarMain();
+armarVistaDeResultadosDeBusqueda();
+configurarBusqueda();
 // mainLoop()
 
