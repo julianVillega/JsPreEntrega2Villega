@@ -1,3 +1,5 @@
+// clases:
+
 class Comercio{
     constructor(cuit, nombre, direccion, latlang){
         this.cuit = cuit;
@@ -44,7 +46,7 @@ class Map{
     mostrarComercios(comercios){
         for(let comercio of comercios){
             const comercioMarker = this.addComercioMarker(comercio);
-            comercioMarker.marker.on('click',() => abrirComercio(comercio))
+            comercioMarker.marker.on('click',() => armarVistaDeComercio(comercio))
         }
     }
 
@@ -57,16 +59,16 @@ class Map{
         return this.comerciosMarkers.filter(cm => cm.comercio == comercio)[0];
     }
     
-
 }
 
 class ComercioMarker{
     constructor(comercio){
-        this.marker = L.marker(comercio.latlang);
+        this.marker = L.marker(comercio.latlang);        
         this.comercio = comercio;
     }
 }
 
+// objetos globales:
 let comercios = [];
 let productos = [];
 let precios = [];
@@ -74,7 +76,6 @@ let precios = [];
 let map;
 
 //funciones para agregar a los arrays.
-
 function agregarComercio(comercio){
     comercios.push(comercio)
 }
@@ -87,38 +88,7 @@ function agregarPrecio(precio){
     precios.push(precio)
 }
 
-// cargo el sistema con algunos datos iniciales.
 
-agregarComercio(new Comercio("00123654", "Carrefour", "calle 12 nro 123",[-34.92306135547813, -57.94991434646028]))
-agregarComercio(new Comercio("09275654", "Super Lu", "av 60 nro 1200",[-34.92339482939376, -57.944068539651944]))
-agregarComercio(new Comercio("98133654", "El chino", "av 51 nro 456",[-34.92170122221505, -57.94498483514024]))
-agregarComercio(new Comercio("15612367", "Lo de chicho", "Bv Americas nro 846",[-34.92436488977569, -57.94811562618901]))
-agregarComercio(new Comercio("98761452", "Almacen la Gloria", "calle 32 nro 444",[-34.924987645034854, -57.94625914898358]))
-
-agregarProducto(new Producto("1456987","Dulce de leche"));
-agregarProducto(new Producto("9876458","Fideos"));
-agregarProducto(new Producto("7841146","Arroz"));
-agregarProducto(new Producto("3331254","Leche"));
-agregarProducto(new Producto("9546786","Manteca"));
-
-
-function generarPrecios(){
-    //1000ms por segundo, 60 seg por minuto, 60 min por hr, 24hr por dia
-    const msPorDia = 1000*60*60*24;
-    const fechaFin = new Date();
-    const fechaInicio = fechaFin - 30 * msPorDia;
-    // Agregamos 5 precios de cada producto en cada comercio
-    for(let producto = 0; producto <= 4; producto++){
-        for(let comercio = 0; comercio <= 4; comercio++){
-            for(let cantidadDePrecios = 0; cantidadDePrecios < 5; cantidadDePrecios ++){
-                fecha = new Date(Math.random()*(fechaFin- fechaInicio) + fechaInicio)
-                let valor = Math.random()*1000;
-                valor = valor.toFixed(2)
-                agregarPrecio(new Precio(productos[producto], valor, comercios[comercio], fecha));
-            }
-        }
-    }
-}
 
 // funciones de ordenamiento
 
@@ -142,7 +112,6 @@ function preciosDelProducto(producto){
 function preciosDelComercio(comercio){
     // retorna los ultimos precios de los productos vendidos en el comercio pasado como parametro
     let preciosDelComercio = precios.filter(e => e.comercio == comercio);
-
     //eliminar precios de productos repetidos
     preciosDelComercio.sort((p1,p2) => p1.ean - p2.ean);
     const preciosMasRecientes = {};
@@ -154,99 +123,42 @@ function preciosDelComercio(comercio){
         }
     })
     return Object.values(preciosMasRecientes);
-
 }
 
-
-function seleccionarElemento(textoInstructivo, textoError, lista, funcionDeTexto){
-    /*
-    Recibe una lista y genera un prompt para que el usuario seleccione un elemento.
-    Parametros:
-    textoInstructivo: texto que se muestra como titulo del prompt.
-    textoError: texto que se muestra si el usuario selecciona un opción inváldia.
-    lista: lista de elemntos que se deben brindar como opción de selección.
-    
-        funcionDeTexto: funcón que debe retornar el texto para cada opcion, por ejemplo
-        si la lista contiene comercios, esta funcion podria recibir como parametro un comercio,
-        y retornar su nombre.
-    Retorna el elemento seleccionado, o la string "cancelar"
-    */
-    let elementoSeleccionado;
-    for(let i = 0; i< lista.length; i++){
-        textoInstructivo = textoInstructivo.concat(`${i}: ${funcionDeTexto(lista[i])}\n`)
-    }
-    while(true){
-        elementoSeleccionado = prompt(textoInstructivo);
-        if(elementoSeleccionado === null){
-            alert("operación cancelada")
-            return "cancelar"
-        }
-        if(isNaN(elementoSeleccionado)|| elementoSeleccionado ==='' ||!(elementoSeleccionado >= 0 && elementoSeleccionado < lista.length)){
-            alert(textoError);
-            continue
-        }
-        return lista[elementoSeleccionado]
-    }
-
-}
-
-function mainLoop() {
-    while (true) {
-        let operacion = seleccionarElemento(
-            "Ingrese el numero de la operacion a realizar:\n",
-            "la opcione seleccionada es invalida",
-            [0,1],
-            operacion => {
-                let textos = ["Consultar los precios mas recientes para un producto." ,"Consultar el historial de precios de un producto."]
-                return textos[operacion]
+// funciones para cargar datos iniciales de comercios y precios
+// para poder probar el sistema
+function generarPrecios(){
+    // agrego comercios
+    agregarComercio(new Comercio("00123654", "Carrefour", "calle 12 nro 123",[-34.92306135547813, -57.94991434646028]))
+    agregarComercio(new Comercio("09275654", "Super Lu", "av 60 nro 1200",[-34.92339482939376, -57.944068539651944]))
+    agregarComercio(new Comercio("98133654", "El chino", "av 51 nro 456",[-34.92170122221505, -57.94498483514024]))
+    agregarComercio(new Comercio("15612367", "Lo de chicho", "Bv Americas nro 846",[-34.92436488977569, -57.94811562618901]))
+    agregarComercio(new Comercio("98761452", "Almacen la Gloria", "calle 32 nro 444",[-34.924987645034854, -57.94625914898358]))
+    //agrego productos
+    agregarProducto(new Producto("1456987","Dulce de leche"));
+    agregarProducto(new Producto("9876458","Fideos"));
+    agregarProducto(new Producto("7841146","Arroz"));
+    agregarProducto(new Producto("3331254","Leche"));
+    agregarProducto(new Producto("9546786","Manteca"));
+    //genero precios
+    //1000ms por segundo, 60 seg por minuto, 60 min por hr, 24hr por dia
+    const msPorDia = 1000*60*60*24;
+    const fechaFin = new Date();
+    const fechaInicio = fechaFin - 30 * msPorDia;
+    // Agregamos 5 precios de cada producto en cada comercio
+    for(let producto = 0; producto <= 4; producto++){
+        for(let comercio = 0; comercio <= 4; comercio++){
+            for(let cantidadDePrecios = 0; cantidadDePrecios < 5; cantidadDePrecios ++){
+                let fecha = new Date(Math.random()*(fechaFin- fechaInicio) + fechaInicio)
+                let valor = Math.random()*1000;
+                valor = valor.toFixed(2)
+                agregarPrecio(new Precio(productos[producto], valor, comercios[comercio], fecha));
             }
-        )
-        if(operacion == "cancelar"){
-            alert("Gracias por utlizar nuestros servicios, recargue la pagina para volver a operar")
-            break
-        }
-        if (operacion == "0") {
-            let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
-            // let producto = seleccionarProducto(productos);
-            if(producto == "cancelar"){
-                continue;
-            }
-            let p = preciosDelProducto(producto)
-            p = ordenarPrecios(p, "valor");
-            texto = `Precios: \n`
-            p.forEach(e => texto = texto.concat(`Precio: ${e.valor} Fecha: ${e.fecha.toLocaleString()} Comercio: ${e.comercio.nombre}\n\n`))
-            alert(texto);
-            continue;
-        }
-        else{
-            // seleccionar el producto
-            let producto = seleccionarElemento("Selecciona un producto\n","la opcion seleccionada es invalida",productos, p => p.nombre);
-            if(producto == "cancelar"){
-                continue;
-            }
-
-            // obtener los comercios que venden ese producto.
-            let comerciosQueVendenProducto = comercios.filter(comercio => precios.some(p => (p.producto == producto) && p.comercio == comercio))
-            
-            // seleccionar el comercio
-            let comercioSeleccionado = seleccionarElemento("Selecciona un comercio\n",'El comercio seleccionado es inválido',comerciosQueVendenProducto, c => c.nombre);
-            if(comercioSeleccionado == "cancelar"){
-                continue;
-            }
-            // obtener los precios del producto en ese comercio
-            let preciosEnComercio = precios.filter(p => p.producto == producto && p.comercio == comercioSeleccionado)
-            
-            // ordenar los precios por fecha
-            preciosEnComercio.sort((precio1,precio2) => precio2.fecha - precio1.fecha)
-            
-            //construir el texto del alert
-            texto = `Historial de precios del producto: ${producto.nombre} en ${comercioSeleccionado.nombre}: \n`;
-            preciosEnComercio.forEach(p => texto = texto.concat(`fecha: ${p.fecha.toLocaleDateString()} precio: ${p.valor}\n\n`))
-            //mostrar el alert.
-            alert(texto)
         }
     }
 }
+
+// funciones relacionadas al DOM y su aramado:
 
 function armarHeader(){
     const body = document.body;
@@ -320,12 +232,16 @@ function armarMain(){
     map.mostrarComercios(comercios);
 }
 
-function abrirComercio(comercio){
-    //muestra un modal con el comercio para poder operar sobre el mismo
+function armarVistaDeComercio(comercio){
+    //muestra la vista de un comercio para poder operar sobre el mismo
+    //destacando en color verde el marker del comercio seleccionado.
     const body = document.body;
     
-    // cerramos los comercios abiertos si los hay.
+    // cerramos las vistas de los comercios abiertos y volvemos el color del marker a color original.
     document.querySelectorAll(".comercio-div").forEach( c => c.remove());
+    document.querySelectorAll(".marker-color-green").forEach( m => {
+        m.classList.toggle("marker-color-green");
+    })
     // cambiamos el color del marker
     const comercioMarker = map.markerDelComercio(comercio);
     comercioMarker.marker.getElement().classList.toggle("marker-color-green");
@@ -389,8 +305,11 @@ function abrirComercio(comercio){
     const tabla = document.createElement("table");
     divComercio.appendChild(tabla);
 
+    const thead = document.createElement('thead');
+    tabla.appendChild(thead);
+
     const encabezadoTabla = document.createElement("tr");
-    tabla.appendChild(encabezadoTabla);
+    thead.appendChild(encabezadoTabla);
 
     const tablaNombre = document.createElement("th");
     tablaNombre.innerText = "Nombre";
@@ -404,23 +323,27 @@ function abrirComercio(comercio){
     tablaPrecio.innerText = "Precio";
     encabezadoTabla.appendChild(tablaPrecio);
 
+    const tbody = document.createElement('tbody');
+    tabla.appendChild(tbody);
+
     let precios = preciosDelComercio(comercio);
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
+    const formatter = new Intl.DateTimeFormat('es-AR', options);
     for(let precio of precios){
         const row = document.createElement('tr');
-        tabla.appendChild(row);
+        row.classList.add("comercio__precio");
+        tbody.appendChild(row);
         const colNombre = document.createElement('td');
         colNombre.innerText = precio.producto.nombre;
         row.appendChild(colNombre);
         const colUltimaActualizacion = document.createElement('td');
         colUltimaActualizacion.innerText = formatter.format(precio.fecha);
+        // colUltimaActualizacion.innerText = precio.fecha;
         row.appendChild(colUltimaActualizacion);
         const colPrecio = document.createElement('td');
         colPrecio.innerText = precio.valor;
         row.appendChild(colPrecio);
     }
-
     body.appendChild(divComercio);
 }
 
