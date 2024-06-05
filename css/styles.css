@@ -71,6 +71,7 @@ body{
     padding: 1rem;
     border-radius: 1rem;
     background-color: chartreuse;
+    cursor: pointer;
 }
 
 .comercio-div{

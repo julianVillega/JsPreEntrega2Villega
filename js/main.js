@@ -410,8 +410,14 @@ function configurarBusqueda(){
     // configuro los checkbox para buscar por locales/productos:
     let inputCheckboxProductos = document.querySelector("#checkbox_productos");
     let inputCheckboxLocales = document.querySelector("#checkbox_locales");
-    inputCheckboxProductos.addEventListener ("change",() => inputCheckboxLocales.disabled = !inputCheckboxLocales.disabled);
-    inputCheckboxLocales.addEventListener ("change",() => inputCheckboxProductos.disabled = !inputCheckboxProductos.disabled);
+    inputCheckboxProductos.addEventListener ("change",() => {
+        inputCheckboxLocales.disabled = !inputCheckboxLocales.disabled;
+        configuracionBusquedaEnMapa.tipo="producto";
+    });
+    inputCheckboxLocales.addEventListener ("change",() => {
+        inputCheckboxProductos.disabled = !inputCheckboxProductos.disabled;
+        configuracionBusquedaEnMapa.tipo="local";
+    });
 
     // funcion de busqueda
     let textInput = document.querySelector("#input_busqueda");
@@ -422,10 +428,19 @@ function configurarBusqueda(){
                 const r = document.createElement("div");
                 r.classList.add("main__resultado")
                 r.innerHTML = `<h4>${comercio.nombre}<\h4> <h4>${comercio.direccion}<\h4>`;
+                r.onclick = () => armarVistaDeComercio(comercio);
                 return r;
             });
-            mostrarResultados(resultadosHtml);
         }
+        else{
+            resultadosHtml = buscarProducto(textInput.value).map(producto => {
+                const r = document.createElement("div");
+                r.classList.add("main__resultado")
+                r.innerHTML = `<h4>${producto.nombre}<\h4>`;
+                return r;
+            });
+        }
+        mostrarResultados(resultadosHtml);
     })
 }
 
