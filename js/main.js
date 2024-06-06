@@ -365,15 +365,76 @@ function armarVistaDeResultadosDeBusqueda(){
     titulo.classList.add("main__titulo-resultados-busqueda");
     divResultados.appendChild(titulo);
 
+    const productosFavoritos = document.createElement("button");
+    productosFavoritos.innerText = "Mis productos favoritos";
+    productosFavoritos.id = "btn-productos-favoritos";
+    productosFavoritos.onclick = mostrarProductosFavoritos;
+    divResultados.appendChild(productosFavoritos);
+
     const divListaResultados = document.createElement('div');
     divListaResultados.classList.add('main__lista-resultados');
     divResultados.appendChild(divListaResultados);
 }
 
+function mostrarProductosFavoritos(){
+    const titulo = document.querySelector(".main__titulo-resultados-busqueda")
+    titulo.innerText = "Tus productos favoritos";
+
+    const btnFavoritos = document.querySelector("#btn-productos-favoritos");
+    btnFavoritos.innerText = "cerrar";
+
+    btnFavoritos.onclick = () =>{
+        btnFavoritos.innerText = "Mis productos favoritos";
+        titulo.innerText = "Resultados";
+        document.querySelector("#input_busqueda").dispatchEvent(new Event("keyup"));
+    } 
+    const productosFavoritos = JSON.parse(localStorage.getItem("productosFavoritos")).map(prod => armarResultadoDeProducto(prod));
+    mostrarResultados(productosFavoritos);
+}
+
+function armarResultadoDeProducto(producto){
+    //arma un pequeño card con el nombre de un producto y la opcion para agregarlo a favoritos.
+    const r = document.createElement("div");
+    r.classList.add("main__resultado")
+    r.innerHTML = `<h4>${producto.nombre}<\h4>`;
+    r.onclick = () =>{
+        //encontrar los comercios que venden el producto
+        let precios = preciosDelProducto(producto);
+        let comercios = new Set(); 
+        precios.map(precio => precio.comercio).forEach(comercio => comercios.add(comercio));
+        comercios = Array.from(comercios);
+        //destacar su marker en el mapa e informar el precio mas reciente.
+        comercios.forEach(comercio => {
+            let marker = map.markerDelComercio(comercio); 
+            marker.marker.getElement().classList.toggle("marker-color-green");
+            let preciosEnElComercio = precios.filter(precio => {return precio.comercio == comercio});
+            // obtener el precio mas reciente.
+            let ultimoPrecio = preciosEnElComercio.sort((precio1, precio2) => precio2.fecha - precio1.fecha)[0];
+            marker.marker.bindPopup(ultimoPrecio.valor, {autoClose:false, closeOnClick:false}).openPopup();
+        });
+    }
+    // boton para agregar producto a los favoritos.
+    const btnFavorito = document.createElement("button");
+    btnFavorito.innerText = "Favorito";
+    r.appendChild(btnFavorito);
+    btnFavorito.onclick = () => {
+        let storage = localStorage.getItem('productosFavoritos');
+        let fav;
+        if(storage == null){
+            fav = [];
+        }
+        else{
+            fav = JSON.parse(storage);
+        }
+        !fav.some(p => p.ean == producto.ean) && fav.push(producto);
+        fav = JSON.stringify(Array.from(fav));
+        localStorage.setItem('productosFavoritos', fav);
+    }
+    return r;
+}
+
 function mostrarResultados(resultados){
     // recibe elementos html y los muestra en el panel de resultados.
-
-
     // muestrar el panel de resultados caso este oculto.
     const divResultados = document.querySelector(".main__resultados-busqueda");
     divResultados.classList.remove("main__resultados-busqueda--oculto");
@@ -428,44 +489,7 @@ function configurarBusqueda(){
         }
         else{
             resultadosHtml = buscarProducto(textInput.value).map(producto => {
-                const r = document.createElement("div");
-                r.classList.add("main__resultado")
-                r.innerHTML = `<h4>${producto.nombre}<\h4>`;
-                r.onclick = () =>{
-                    //encontrar los comercios que venden el producto
-                    let precios = preciosDelProducto(producto);
-                    let comercios = new Set(); 
-                    precios.map(precio => precio.comercio).forEach(comercio => comercios.add(comercio));
-                    comercios = Array.from(comercios);
-                    //destacar su marker en el mapa e informar el precio mas reciente.
-                    comercios.forEach(comercio => {
-                        let marker = map.markerDelComercio(comercio); 
-                        marker.marker.getElement().classList.toggle("marker-color-green");
-                        let preciosEnElComercio = precios.filter(precio => {return precio.comercio == comercio});
-                        // obtener el precio mas reciente.
-                        let ultimoPrecio = preciosEnElComercio.sort((precio1, precio2) => precio2.fecha - precio1.fecha)[0];
-                        marker.marker.bindPopup(ultimoPrecio.valor, {autoClose:false, closeOnClick:false}).openPopup();
-                    });
-                }
-                // boton para agregar producto a los favoritos.
-                const btnFavorito = document.createElement("button");
-                btnFavorito.innerText = "Favorito";
-                r.appendChild(btnFavorito);
-                btnFavorito.onclick = () => {
-                    let storage = localStorage.getItem('productosFavoritos');
-                    let fav;
-                    if(storage == null){
-                        fav = [];
-                    }
-                    else{
-                        fav = JSON.parse(storage);
-                    }
-
-                    !fav.some(p => p.ean == producto.ean) && fav.push(producto);
-                    fav = JSON.stringify(Array.from(fav));
-                    localStorage.setItem('productosFavoritos', fav);
-                }
-                return r;
+                return armarResultadoDeProducto(producto);
             });
         }
         mostrarResultados(resultadosHtml);
