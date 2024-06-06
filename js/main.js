@@ -431,12 +431,29 @@ function configurarBusqueda(){
                 const r = document.createElement("div");
                 r.classList.add("main__resultado")
                 r.innerHTML = `<h4>${producto.nombre}<\h4>`;
+                r.onclick = () =>{
+                    //encontrar los comercios que venden el producto
+                    let precios = preciosDelProducto(producto);
+                    let comercios = new Set(); 
+                    precios.map(precio => precio.comercio).forEach(comercio => comercios.add(comercio));
+                    comercios = Array.from(comercios);
+                    //destacar su marker en el mapa e informar el precio mas reciente.
+                    comercios.forEach(comercio => {
+                        let marker = map.markerDelComercio(comercio); 
+                        marker.marker.getElement().classList.toggle("marker-color-green");
+                        let preciosEnElComercio = precios.filter(precio => {return precio.comercio == comercio});
+                        // obtener el precio mas reciente.
+                        let ultimoPrecio = preciosEnElComercio.sort((precio1, precio2) => precio2.fecha - precio1.fecha)[0];
+                        marker.marker.bindPopup(ultimoPrecio.valor, {autoClose:false, closeOnClick:false}).openPopup();
+                    });
+                }
                 return r;
             });
         }
         mostrarResultados(resultadosHtml);
     })
 }
+
 
 generarPrecios();
 armarHeader();
