@@ -447,6 +447,24 @@ function configurarBusqueda(){
                         marker.marker.bindPopup(ultimoPrecio.valor, {autoClose:false, closeOnClick:false}).openPopup();
                     });
                 }
+                // boton para agregar producto a los favoritos.
+                const btnFavorito = document.createElement("button");
+                btnFavorito.innerText = "Favorito";
+                r.appendChild(btnFavorito);
+                btnFavorito.onclick = () => {
+                    let storage = localStorage.getItem('productosFavoritos');
+                    let fav;
+                    if(storage == null){
+                        fav = [];
+                    }
+                    else{
+                        fav = JSON.parse(storage);
+                    }
+
+                    !fav.some(p => p.ean == producto.ean) && fav.push(producto);
+                    fav = JSON.stringify(Array.from(fav));
+                    localStorage.setItem('productosFavoritos', fav);
+                }
                 return r;
             });
         }
