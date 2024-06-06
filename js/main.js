@@ -109,11 +109,11 @@ function ordenarPrecios(precios, criterio){
 
 // funciones de busqueda
 function buscarComercio(nombre){
-    return comercios.filter(c => c.nombre.toLowerCase().includes(nombre.toLowerCase()));
+    return nombre !=="" ? comercios.filter(c => c.nombre.toLowerCase().includes(nombre.toLowerCase())): [];
 }
 
 function buscarProducto(nombre){
-    return productos.filter(p => p.nombre.toLowerCase().includes(nombre.toLowerCase()));
+    return nombre !=="" ? productos.filter(p => p.nombre.toLowerCase().includes(nombre.toLowerCase())) : [];
 }
 
 // funciones de filtrado
@@ -213,7 +213,6 @@ function armarMain(){
     const inputCheckboxProductos = document.createElement("input");
     inputCheckboxProductos.type = "checkbox";
     inputCheckboxProductos.id ="checkbox_productos";
-    inputCheckboxProductos.value = "false";
     form.appendChild(inputCheckboxProductos);
 
     const labelCheckboxLocales = document.createElement("label");
@@ -224,14 +223,9 @@ function armarMain(){
     const inputCheckboxLocales = document.createElement("input");
     inputCheckboxLocales.type = "checkbox";
     inputCheckboxLocales.id ="checkbox_locales";
-    inputCheckboxLocales.value = "false";
+    inputCheckboxLocales.checked = true;
     form.appendChild(inputCheckboxLocales);
 
-    const btnBuscar = document.createElement("button");
-    btnBuscar.innerText = "Buscar";
-    btnBuscar.id = "btn-buscar";
-    form.appendChild(btnBuscar);
-    
     // creamos el mapa
 
     const mapDiv = document.createElement("div");
@@ -411,11 +405,11 @@ function configurarBusqueda(){
     let inputCheckboxProductos = document.querySelector("#checkbox_productos");
     let inputCheckboxLocales = document.querySelector("#checkbox_locales");
     inputCheckboxProductos.addEventListener ("change",() => {
-        inputCheckboxLocales.disabled = !inputCheckboxLocales.disabled;
+        inputCheckboxLocales.checked = false;
         configuracionBusquedaEnMapa.tipo="producto";
     });
     inputCheckboxLocales.addEventListener ("change",() => {
-        inputCheckboxProductos.disabled = !inputCheckboxProductos.disabled;
+        inputCheckboxProductos.checked = false;
         configuracionBusquedaEnMapa.tipo="local";
     });
 
@@ -450,4 +444,3 @@ armarMain();
 armarVistaDeResultadosDeBusqueda();
 configurarBusqueda();
 // mainLoop()
-
